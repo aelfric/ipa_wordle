@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState } from "react";
+import { useReducer } from "react";
 import styles from "./App.module.css";
 
 const characters = [
@@ -42,6 +42,39 @@ const characters = [
 
 const solution = "wɔrɡə";
 
+function reduce(state, action) {
+  const guesses = [...state.guesses];
+  switch (action.type) {
+    case "GUESS_LETTER":
+      guesses[state.currentGuess] += action.payload;
+      return { ...state, guesses: guesses };
+    case "BACKSPACE":
+      guesses[state.currentGuess] = guesses[state.currentGuess].substring(
+        0,
+        guesses[state.currentGuess].length - 1
+      );
+      return { ...state, guesses: guesses };
+    case "CHECK_WORD":
+      if (guesses[state.currentGuess].length === 5) {
+        const newLetterMap = new Map(state.letterMap);
+        Array.from(guesses[state.currentGuess]).forEach((letter, pos) => {
+          if (newLetterMap.get(letter) !== styles.correct) {
+            newLetterMap.set(letter, checkLetter(letter, pos, solution));
+          }
+        });
+        return {
+          ...state,
+          currentGuess: state.currentGuess + 1,
+          letterMap: newLetterMap,
+        };
+      } else {
+        return state;
+      }
+    default:
+      return state;
+  }
+}
+
 function checkLetter(letter, position, word) {
   let state = styles.incorrect;
 
@@ -66,68 +99,49 @@ function Letter({ letter, position, clean }) {
   return <li className={`${styles.guess_letter} ${state}`}>{letter}</li>;
 }
 
-function Guess({ guess }) {
-  return (
-    <ul className={styles.guess_word}>
-      {Array.from(guess).map((letter, pos) => (
-        <Letter key={pos} position={pos} letter={letter} />
-      ))}
-    </ul>
-  );
-}
-
 function App() {
-  const [pastGuesses, setPastGuesses] = useState([]);
-  const [guess, setGuess] = useState("");
-  const [letterMap, setLetterMap] = useState(new Map());
+  const [state, dispatch] = useReducer(reduce, {
+    currentGuess: 0,
+    guesses: ["", "", "", "", "", ""],
+    letterMap: new Map(),
+  });
 
   function onclick(symbol) {
-    if (guess.length < 5 && pastGuesses.length < 6) {
-      setGuess(guess + symbol);
-    }
+    dispatch({ type: "GUESS_LETTER", payload: symbol });
   }
 
   function backspace() {
-    setGuess(guess.substring(0, guess.length - 1));
+    dispatch({ type: "BACKSPACE" });
   }
 
   function check() {
-    if (guess.length === 5) {
-      setPastGuesses([...pastGuesses, guess]);
-      Array.from(guess).forEach((letter, pos) => {
-        setLetterMap(
-          new Map(letterMap.set(letter, checkLetter(letter, pos, solution)))
-        );
-      });
-      if(guess === solution){
-        alert("You win!")
-      } else if (pastGuesses.length + 1 === 5 ){
-        alert("You lose!");
-      }
-      setGuess("");
-    }
+    dispatch({ type: "CHECK_WORD" });
   }
 
   return (
     <div className="App">
-      {pastGuesses.map((gs) => (
-        <Guess key={gs} guess={gs} />
+      {state.guesses.map((guess, i) => (
+        <ul key={i} className={styles.guess_word}>
+          {Array.from(guess.padEnd(5, " ")).map((letter, pos) => (
+            <Letter
+              key={pos}
+              letter={letter}
+              position={pos}
+              clean={i >= state.currentGuess}
+            />
+          ))}
+        </ul>
       ))}
-      <ul className={styles.guess_word}>
-        {Array.from(guess.padEnd(5, " ")).map((letter, pos) => (
-          <Letter key={pos} letter={letter} clean={true} />
-        ))}
-      </ul>
       {characters.map((c) => (
         <button
-          className={`${styles.ipa_button} ${letterMap.get(c)}`}
+          className={`${styles.ipa_button} ${state.letterMap.get(c)}`}
           key={c}
           onClick={() => onclick(c)}
         >
           {c}
         </button>
       ))}
-      <button className={styles.ipa_button} onClick={() => backspace()}>
+      <button className={styles.ipa_button} onClick={backspace}>
         ⌫
       </button>
       <p>
