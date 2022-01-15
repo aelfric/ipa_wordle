@@ -58,7 +58,7 @@ function reduce(state, action) {
     case "GUESS_LETTER":
       if (currentGuess.length < 5 && !state.win && !state.loss) {
         guesses[state.currentGuess] += action.payload;
-        return { ...state, guesses: guesses };
+        return { ...state, guesses: guesses, error: undefined };
       } else {
         return state;
       }
@@ -67,12 +67,11 @@ function reduce(state, action) {
         0,
         currentGuess.length - 1
       );
-      return { ...state, guesses: guesses };
+      return { ...state, guesses: guesses, error: undefined };
     case "CHECK_WORD":
       if (currentGuess.length === 5) {
         if (wordMap[currentGuess] !== 1) {
-          alert("Sorry, I don't recognize that word");
-          return state;
+          return { ...state, error: "Sorry, I don't recognize that word" };
         }
         const newLetterMap = { ...state.letterMap };
         Array.from(currentGuess).forEach((letter, pos) => {
@@ -261,6 +260,9 @@ function App() {
 
   useEffect(() => {
     window.localStorage.setItem("gameState", JSON.stringify(state));
+    if(state.error){
+      alert(state.error);
+    }
   }, [state]);
 
   function onclick(symbol) {
