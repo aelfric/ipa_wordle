@@ -296,7 +296,7 @@ function About({ showMenu }) {
           Since both datasets have been normalized to lowercase, this results in
           some proper nouns being included in the word list.
         </p>
-        <button onClick={() => setShow(false)}>Hide</button>
+        <button className={styles.ipa_button} onClick={() => setShow(false)}>Hide</button>
       </aside>
       <button onClick={() => setShow(true)}><img src={helpIcon} alt="Help"/></button>
     </>
