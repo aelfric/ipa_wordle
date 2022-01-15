@@ -62,6 +62,8 @@ li.guess_letter:nth-child(5) {
     transition: background 1s, color 1s;
     transition-delay: 2.7s;
     -webkit-tap-highlight-color: rgba(0,0,0,0.3);
+    cursor: pointer;
+    user-select: none;
 }
 
 .keyboard {
