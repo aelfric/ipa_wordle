@@ -5,11 +5,32 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  height: 100vh;
 }
 
 header {
   height: 70px;
+  display: flex;
+}
+
+header h1 {
+  text-align: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  margin: 0;
+  line-height: 70px;
+}
+
+header button {
+  background: transparent;
+  border: none;
 }
 main {
   flex-grow: 1;
+}
+
+svg {
+  pointer-events: none;
 }
