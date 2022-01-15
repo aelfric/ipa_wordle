@@ -243,7 +243,7 @@ function Victory({ currentGuess, guesses, expiry }) {
                 key={pos}
                 letter={letter}
                 position={pos}
-                clean={i > currentGuess}
+                clean={i >= currentGuess}
               />
             ))}
             {"\n"}
