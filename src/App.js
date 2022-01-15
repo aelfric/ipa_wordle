@@ -1,7 +1,7 @@
 import "./App.css";
-import { useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import styles from "./App.module.css";
-import wordList from './wordlist'
+import wordList from "./wordlist";
 
 const characters = [
   "a",
@@ -41,14 +41,14 @@ const characters = [
   "θ",
 ];
 
-const start = new Date("Jan 12, 2022")
-const days = Math.floor((new Date() - start) / (1000*60*60*24))
+const start = new Date("Jan 12, 2022");
+const days = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24));
 
 const solution = wordList[days][1];
+const solutionWord = wordList[days][0];
 
-const wordMap = {}
-wordList.forEach (word => wordMap[word[1]] = 1)
-
+const wordMap = {};
+wordList.forEach((word) => (wordMap[word[1]] = 1));
 
 function reduce(state, action) {
   const guesses = [...state.guesses];
@@ -69,14 +69,14 @@ function reduce(state, action) {
       return { ...state, guesses: guesses };
     case "CHECK_WORD":
       if (currentGuess.length === 5) {
-        if(wordMap[currentGuess] !== 1){
-          alert("not a word")
+        if (wordMap[currentGuess] !== 1) {
+          alert("not a word");
           return state;
         }
-        const newLetterMap = new Map(state.letterMap);
+        const newLetterMap = { ...state.letterMap };
         Array.from(currentGuess).forEach((letter, pos) => {
-          if (newLetterMap.get(letter) !== styles.correct) {
-            newLetterMap.set(letter, checkLetter(letter, pos, solution));
+          if (newLetterMap[letter] !== styles.correct) {
+            newLetterMap[letter] = checkLetter(letter, pos, solution);
           }
         });
         return {
@@ -105,15 +105,17 @@ function checkLetter(letter, position, word) {
   return state;
 }
 
-function Modal({children}){
-  const [visible, setVisible] = useState("")
+function Modal({ children }) {
+  const [visible, setVisible] = useState("");
 
-  requestAnimationFrame(()=>{
-    setVisible(styles.visible)
-  })
-  return <div className={`${styles.modal} ${visible}`}>
-    {children}
-  </div>
+  requestAnimationFrame(() => {
+    setVisible(styles.visible);
+  });
+  return (
+    <div className={`${styles.modal} ${visible}`}>
+      <div>{children}</div>
+    </div>
+  );
 }
 
 function Letter({ letter, position, clean }) {
@@ -134,12 +136,45 @@ function Letter({ letter, position, clean }) {
   return <li className={`${styles.guess_letter} ${state}`}>{letter}</li>;
 }
 
-function App() {
-  const [state, dispatch] = useReducer(reduce, {
+function getInitialState(){
+  const initialGameState = window.localStorage.getItem("gameState");
+
+  const midnight = new Date();
+  midnight.setHours(0,0,0,0);
+
+  const defaultState = {
     currentGuess: 0,
     guesses: ["", "", "", "", "", ""],
-    letterMap: new Map(),
-  });
+    letterMap: {},
+    expiry: midnight
+  };
+
+  if(initialGameState) {
+    const savedState = JSON.parse(initialGameState)
+    console.log(new Date());
+    console.log(savedState.expiry)
+    if(new Date() > new Date(savedState.expiry )){
+      return defaultState
+    } else {
+      return savedState;
+    }
+  } else {
+    return defaultState;
+  }
+}
+
+function App() {
+  
+  const [state, dispatch] = useReducer(
+    reduce,
+    getInitialState()
+  );
+
+  useEffect(() => {
+    window.localStorage.setItem("gameState", JSON.stringify(state));
+  }, [state]);
+
+  
 
   function onclick(symbol) {
     dispatch({ type: "GUESS_LETTER", payload: symbol });
@@ -155,8 +190,19 @@ function App() {
 
   return (
     <div className="App">
-      {state.win && <Modal><p>👏 You win!</p></Modal>}
-      {state.loss && <Modal><p>Better luck next time</p></Modal>}
+      {state.win && (
+        <Modal>
+          <p>👏 You win!</p>
+        </Modal>
+      )}
+      {state.loss && (
+        <Modal>
+          <p>Better luck next time</p>
+          <p>The word was </p>
+          <p>/{solution}/</p>
+          <p>("{solutionWord}")</p>
+        </Modal>
+      )}
       <header>
         <h1>/wɚdl̩/</h1>
       </header>
@@ -177,17 +223,25 @@ function App() {
       <div className={styles.keyboard}>
         {characters.map((c) => (
           <button
-            className={`${styles.ipa_button} ${state.letterMap.get(c)}`}
+            className={`${styles.ipa_button} ${state.letterMap[c]}`}
             key={c}
             onClick={() => onclick(c)}
           >
             {c}
           </button>
         ))}
-        <button className={styles.ipa_button} onClick={backspace} style={{gridColumn: "6 /span 2"}}>
+        <button
+          className={styles.ipa_button}
+          onClick={backspace}
+          style={{ gridColumn: "6 /span 2" }}
+        >
           ⌫
         </button>
-        <button className={styles.ipa_button} onClick={check} style={{gridColumn: "8 /span 3"}}>
+        <button
+          className={styles.ipa_button}
+          onClick={check}
+          style={{ gridColumn: "8 /span 3" }}
+        >
           Submit
         </button>
       </div>
