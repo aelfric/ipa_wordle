@@ -3,6 +3,7 @@ import { useEffect, useReducer, useState } from "react";
 import styles from "./App.module.css";
 import wordList from "./wordlist";
 
+const appName = "/wɝdl̩/"
 const characters = [
   "a",
   "æ",
@@ -70,7 +71,7 @@ function reduce(state, action) {
     case "CHECK_WORD":
       if (currentGuess.length === 5) {
         if (wordMap[currentGuess] !== 1) {
-          alert("not a word");
+          alert("Sorry, I don't recognize that word");
           return state;
         }
         const newLetterMap = { ...state.letterMap };
@@ -136,25 +137,40 @@ function Letter({ letter, position, clean }) {
   return <li className={`${styles.guess_letter} ${state}`}>{letter}</li>;
 }
 
-function getInitialState(){
+function LetterEmoji({ letter, position, clean }) {
+  if (clean) {
+    return "⬜";
+  }
+  let newState = "⬛";
+  if (solution.charAt(position) === letter) {
+    newState = "🟩";
+  } else if (solution.includes(letter)) {
+    newState = "🟨";
+  }
+
+  return newState;
+}
+
+function getInitialState() {
   const initialGameState = window.localStorage.getItem("gameState");
 
   const midnight = new Date();
-  midnight.setHours(0,0,0,0);
+  midnight.setHours(24, 0, 0, 0);
 
   const defaultState = {
     currentGuess: 0,
     guesses: ["", "", "", "", "", ""],
     letterMap: {},
-    expiry: midnight
+    expiry: midnight,
   };
 
-  if(initialGameState) {
-    const savedState = JSON.parse(initialGameState)
+  if (initialGameState) {
+    const savedState = JSON.parse(initialGameState);
     console.log(new Date());
-    console.log(savedState.expiry)
-    if(new Date() > new Date(savedState.expiry )){
-      return defaultState
+    console.log(new Date(savedState.expiry));
+    if (new Date() > new Date(savedState.expiry)) {
+      console.log("It's a brand new day - new puzzle");
+      return defaultState;
     } else {
       return savedState;
     }
@@ -163,18 +179,89 @@ function getInitialState(){
   }
 }
 
-function App() {
-  
-  const [state, dispatch] = useReducer(
-    reduce,
-    getInitialState()
+function Timer({ targetDate }) {
+  const calculateTimeLeft = () => {
+    let difference = +new Date(targetDate) - +new Date();
+    let timeLeft = {};
+
+    if (difference > 0) {
+      timeLeft = {
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    }
+
+    return timeLeft;
+  };
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+    return () => clearTimeout(timer);
+  });
+
+  return (
+    <p>
+      Next puzzle in {String(timeLeft.hours).padStart(2, "0")}:
+      {String(timeLeft.minutes).padStart(2, "0")}:
+      {String(timeLeft.seconds).padStart(2, "0")}
+    </p>
   );
+}
+
+function Victory({ currentGuess, guesses, expiry }) {
+  function copy() {
+    const newLocal = document.getElementsByClassName(styles.emoji_share)[0];
+    if (!navigator.clipboard) {
+      newLocal.select();
+      document.execCommand("copy");
+    } else {
+      navigator.clipboard
+        .writeText(newLocal.textContent)
+        .then(function () {
+          alert("Copied to clipboard!"); // success
+        })
+        .catch(function () {
+          alert("Could not copy result to clipboard"); // error
+        });
+    }
+  }
+  return (
+    <Modal>
+      <p>👏 You win! 👏</p>
+      <div className={styles.emoji_share}>
+        <p>
+          {appName} {days + 1} {currentGuess + 1}/6 {"\n\n"}
+        </p>
+        {guesses.map((guess, i) => (
+          <p key={i}>
+            {Array.from(guess.padEnd(5, " ")).map((letter, pos) => (
+              <LetterEmoji
+                key={pos}
+                letter={letter}
+                position={pos}
+                clean={i > currentGuess}
+              />
+            ))}
+            {"\n"}
+          </p>
+        ))}
+      </div>
+      <button onClick={copy}>Share</button>
+      <Timer targetDate={expiry} />
+    </Modal>
+  );
+}
+
+function App() {
+  const [state, dispatch] = useReducer(reduce, getInitialState());
 
   useEffect(() => {
     window.localStorage.setItem("gameState", JSON.stringify(state));
   }, [state]);
-
-  
 
   function onclick(symbol) {
     dispatch({ type: "GUESS_LETTER", payload: symbol });
@@ -190,11 +277,11 @@ function App() {
 
   return (
     <div className="App">
-      {state.win && (
-        <Modal>
-          <p>👏 You win!</p>
-        </Modal>
-      )}
+      {state.win && <Victory 
+      currentGuess={state.currentGuess}
+      guesses={state.guesses}
+      expiry={state.expiry}
+      />}
       {state.loss && (
         <Modal>
           <p>Better luck next time</p>
@@ -204,7 +291,7 @@ function App() {
         </Modal>
       )}
       <header>
-        <h1>/wɚdl̩/</h1>
+        <h1>{appName}</h1>
       </header>
       <main>
         {state.guesses.map((guess, i) => (

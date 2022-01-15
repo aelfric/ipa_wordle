@@ -37,7 +37,7 @@ li.guess_letter:nth-child(5) {
 }
 
 .guess_letter.correct, .ipa_button.correct {
-    background-color: green;   
+    background-color: #4CAF50;   
     color: rgba(255,255,255,0.87)
 }
 
@@ -47,7 +47,7 @@ li.guess_letter:nth-child(5) {
 }
 
 .guess_letter.partial, .ipa_button.partial {
-    background-color: yellow;
+    background-color: #FFEB3B;
     color: rgba(0,0,0,0.87)
 }
 
@@ -91,4 +91,13 @@ li.guess_letter:nth-child(5) {
 
 .modal.visible {
     opacity: 1;
+}
+
+.emoji_share {
+    font-size: 1rem;
+}
+.emoji_share p {
+    margin: 0;
+    padding: 0;
+    white-space: pre-wrap;
 }
