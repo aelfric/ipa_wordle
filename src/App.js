@@ -85,7 +85,7 @@ function reduce(state, action) {
           currentGuess: state.currentGuess + 1,
           letterMap: newLetterMap,
           win: currentGuess === solution,
-          loss: state.currentGuess + 1 === 6,
+          loss: state.currentGuess + 1 === 6 && currentGuess !== solution,
         };
       } else {
         return state;
@@ -234,7 +234,7 @@ function Victory({ currentGuess, guesses, expiry }) {
       <p>👏 You win! 👏</p>
       <div className={styles.emoji_share}>
         <p>
-          {appName} {days + 1} {currentGuess + 1}/6 {"\n\n"}
+          {appName} {days + 1} {currentGuess}/6 {"\n\n"}
         </p>
         {guesses.map((guess, i) => (
           <p key={i}>
