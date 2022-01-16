@@ -2,7 +2,7 @@ import "./App.css";
 import { useEffect, useReducer, useState } from "react";
 import styles from "./App.module.css";
 import wordList from "./wordlist";
-import helpIcon from './help.svg';
+import helpIcon from "./help.svg";
 
 const appName = "/wɝdl̩/";
 const characters = [
@@ -275,7 +275,7 @@ function About({ showMenu }) {
         </p>
         <p>
           <strong>Some linguistic notes:</strong> English has many dialects and
-          ideolects with various pronunciation differences. While these variants
+          idiolects with various pronunciation differences. While these variants
           are all valid and important, for this game to work some standardized
           pronunciation needed to be chosen. I took the following steps to
           create the word list for this game.
@@ -283,7 +283,7 @@ function About({ showMenu }) {
         <p>
           The CMU Pronouncing Dictionary (CMUdict) is a pronunciation corpus for
           North American English. CMUdict is written using a system called{" "}
-          <a href="https://en.wikipedia.org/wiki/Arpabet">Arpabet</a>. I used an
+          <a href="https://en.wikipedia.org/wiki/Arpabet">Arpabet</a>. I used an{" "}
           <a href="https://github.com/lingz/cmudict-ipa">
             open-source mapping
           </a>{" "}
@@ -296,9 +296,19 @@ function About({ showMenu }) {
           Since both datasets have been normalized to lowercase, this results in
           some proper nouns being included in the word list.
         </p>
-        <button className={styles.ipa_button} onClick={() => setShow(false)}>Hide</button>
+        <p>
+          Report bugs or feedback{" "}
+          <a href="https://github.com/aelfric/ipa_wordle/issues">here</a>.
+          (Maybe don't look at the word list file in that repository if you want
+          to avoid spoilers).
+        </p>
+        <button className={styles.ipa_button} onClick={() => setShow(false)}>
+          Hide
+        </button>
       </aside>
-      <button onClick={() => setShow(true)}><img src={helpIcon} alt="Help"/></button>
+      <button onClick={() => setShow(true)}>
+        <img src={helpIcon} alt="Help" />
+      </button>
     </>
   );
 }
