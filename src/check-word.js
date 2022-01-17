@@ -4,8 +4,6 @@ export const Status = {
   PARTIAL: "partial",
 };
 
-function checkLetter(letter, postion, solutionWord, solutionLetters) {}
-
 export function checkWord(guess, solution) {
   const solutionLetters = new Set(Array.from(solution));
   const guessLetters = Array.from(guess);

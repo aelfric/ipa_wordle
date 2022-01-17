@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { Timer } from "./Timer";
-import { checkWord, Status } from "./checkWord";
+import { checkWord, Status } from "./check-word";
 import timekeeper from "timekeeper";
 
 describe("Victory Timer", () => {
