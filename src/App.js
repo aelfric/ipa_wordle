@@ -179,10 +179,14 @@ function getInitialState() {
   }
 }
 
-function Timer({ targetDate }) {
+export function Timer({ targetDate }) {
   const calculateTimeLeft = () => {
     let difference = +new Date(targetDate) - +new Date();
-    let timeLeft = {};
+    let timeLeft = {
+      hours: '00',
+      minutes: '00',
+      seconds: '00',
+    };
 
     if (difference > 0) {
       timeLeft = {
