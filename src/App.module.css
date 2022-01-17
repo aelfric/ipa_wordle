@@ -76,10 +76,10 @@ li.guess_letter:nth-child(5) {
 }
 
 .modal {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    bottom: 0;
+    height: 100vh;
     right: 0;
     background-color: wheat;
     opacity: 0;
@@ -88,7 +88,15 @@ li.guess_letter:nth-child(5) {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 3em;
+    font-size: 3rem;
+}
+
+.modal p {
+    margin: 1rem;
+}
+
+.modal .words {
+    font-size: 2rem;
 }
 
 .modal.visible {
