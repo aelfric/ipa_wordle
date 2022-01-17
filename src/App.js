@@ -3,6 +3,8 @@ import { useEffect, useReducer, useState } from "react";
 import styles from "./App.module.css";
 import wordList from "./wordlist";
 import helpIcon from "./help.svg";
+import { checkWord } from "./check-word";
+import { CheckedGuess, EmojiGuess, UncheckedGuess } from "./game-board";
 
 const appName = "/wɝdl̩/";
 const characters = [
@@ -75,9 +77,9 @@ function reduce(state, action) {
           return { ...state, error: "Sorry, I don't recognize that word" };
         }
         const newLetterMap = { ...state.letterMap };
-        Array.from(currentGuess).forEach((letter, pos) => {
-          if (newLetterMap[letter] !== styles.correct) {
-            newLetterMap[letter] = checkLetter(letter, pos, solution);
+        checkWord(currentGuess, solution).forEach((result) => {
+          if (newLetterMap[result.letter] !== styles[result.status]) {
+            newLetterMap[result.letter] = styles[result.status];
           }
         });
         return {
@@ -95,17 +97,6 @@ function reduce(state, action) {
   }
 }
 
-function checkLetter(letter, position, word) {
-  let state = styles.incorrect;
-
-  if (word.charAt(position) === letter) {
-    state = styles.correct;
-  } else if (word.includes(letter)) {
-    state = styles.partial;
-  }
-  return state;
-}
-
 function Modal({ children }) {
   const [visible, setVisible] = useState("");
 
@@ -117,38 +108,6 @@ function Modal({ children }) {
       <div>{children}</div>
     </div>
   );
-}
-
-function Letter({ letter, position, clean }) {
-  const [state, setState] = useState(styles.clean);
-
-  if (!clean) {
-    let newState = styles.incorrect;
-    if (solution.charAt(position) === letter) {
-      newState = styles.correct;
-    } else if (solution.includes(letter)) {
-      newState = styles.partial;
-    }
-    requestAnimationFrame(() => {
-      setState(newState);
-    });
-  }
-
-  return <li className={`${styles.guess_letter} ${state}`}>{letter}</li>;
-}
-
-function LetterEmoji({ letter, position, clean }) {
-  if (clean) {
-    return "⬜";
-  }
-  let newState = "⬛";
-  if (solution.charAt(position) === letter) {
-    newState = "🟩";
-  } else if (solution.includes(letter)) {
-    newState = "🟨";
-  }
-
-  return newState;
 }
 
 function getInitialState() {
@@ -166,8 +125,6 @@ function getInitialState() {
 
   if (initialGameState) {
     const savedState = JSON.parse(initialGameState);
-    console.log(new Date());
-    console.log(new Date(savedState.expiry));
     if (new Date() > new Date(savedState.expiry)) {
       console.log("It's a brand new day - new puzzle");
       return defaultState;
@@ -183,9 +140,9 @@ export function Timer({ targetDate }) {
   const calculateTimeLeft = () => {
     let difference = +new Date(targetDate) - +new Date();
     let timeLeft = {
-      hours: '00',
-      minutes: '00',
-      seconds: '00',
+      hours: "00",
+      minutes: "00",
+      seconds: "00",
     };
 
     if (difference > 0) {
@@ -236,24 +193,16 @@ function Victory({ currentGuess, guesses, expiry }) {
   return (
     <Modal>
       <p>👏 You win! 👏</p>
-      <p className={styles.words}>/{solution}/ <br />
-      ("{solutionWord}")</p>
+      <p className={styles.words}>
+        /{solution}/ <br />
+        ("{solutionWord}")
+      </p>
       <div className={styles.emoji_share}>
         <p>
           {appName} {days + 1} {currentGuess}/6 {"\n\n"}
         </p>
         {guesses.map((guess, i) => (
-          <p key={i}>
-            {Array.from(guess.padEnd(5, " ")).map((letter, pos) => (
-              <LetterEmoji
-                key={pos}
-                letter={letter}
-                position={pos}
-                clean={i >= currentGuess}
-              />
-            ))}
-            {"\n"}
-          </p>
+          <EmojiGuess key={i} guess={guess} solution={solution} />
         ))}
       </div>
       <button onClick={copy}>Share</button>
@@ -290,9 +239,7 @@ function About({ showMenu }) {
           The CMU Pronouncing Dictionary (CMUdict) is a pronunciation corpus for
           North American English. CMUdict is written using a system called{" "}
           <a href="https://en.wikipedia.org/wiki/Arpabet">Arpabet</a>. I used an{" "}
-          <a href="https://github.com/lingz/cmudict-ipa">
-            open-source mapping
-          </a>{" "}
+          <a href="https://github.com/lingz/cmudict-ipa">open-source mapping</a>{" "}
           from into IPA.
         </p>
         <p>
@@ -353,8 +300,10 @@ function App() {
       {state.loss && (
         <Modal>
           <p>Better luck next time</p>
-          <p className={styles.words}>/{solution}/ <br />
-      ("{solutionWord}")</p>
+          <p className={styles.words}>
+            /{solution}/ <br />
+            ("{solutionWord}")
+          </p>
         </Modal>
       )}
       <header>
@@ -362,18 +311,13 @@ function App() {
         <h1>{appName}</h1>
       </header>
       <main>
-        {state.guesses.map((guess, i) => (
-          <ul key={i} className={styles.guess_word}>
-            {Array.from(guess.padEnd(5, " ")).map((letter, pos) => (
-              <Letter
-                key={pos}
-                letter={letter}
-                position={pos}
-                clean={i >= state.currentGuess}
-              />
-            ))}
-          </ul>
-        ))}
+        {state.guesses.map((guess, i) => {
+          if (i < state.currentGuess) {
+            return <CheckedGuess key={i} guess={guess} solution={solution} />;
+          } else {
+            return <UncheckedGuess key={i} guess={guess} />;
+          }
+        })}
       </main>
       <div className={styles.keyboard}>
         {characters.map((c) => (
