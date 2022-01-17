@@ -232,6 +232,8 @@ function Victory({ currentGuess, guesses, expiry }) {
   return (
     <Modal>
       <p>👏 You win! 👏</p>
+      <p className={styles.words}>/{solution}/ <br />
+      ("{solutionWord}")</p>
       <div className={styles.emoji_share}>
         <p>
           {appName} {days + 1} {currentGuess}/6 {"\n\n"}
@@ -347,9 +349,8 @@ function App() {
       {state.loss && (
         <Modal>
           <p>Better luck next time</p>
-          <p>The word was </p>
-          <p>/{solution}/</p>
-          <p>("{solutionWord}")</p>
+          <p className={styles.words}>/{solution}/ <br />
+      ("{solutionWord}")</p>
         </Modal>
       )}
       <header>
