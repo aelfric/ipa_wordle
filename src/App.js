@@ -1,55 +1,20 @@
 import "./App.css";
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer } from "react";
 import styles from "./App.module.css";
 import wordList from "./wordlist";
-import helpIcon from "./help.svg";
 import { checkWord } from "./check-word";
-import { CheckedGuess, EmojiGuess, UncheckedGuess } from "./game-board";
+import { CheckedGuess, UncheckedGuess } from "./game-board";
+import { About } from "./About";
+import { Keyboard } from "./Keyboard";
+import { Victory, Loss } from "./end-game-modals";
 
-const appName = "/wɝdl̩/";
-const characters = [
-  "a",
-  "æ",
-  "ɑ",
-  "b",
-  "d",
-  "ð",
-  "e",
-  "ə",
-  "ɛ",
-  "ɝ",
-  "f",
-  "ɡ",
-  "h",
-  "i",
-  "ɪ",
-  "j",
-  "k",
-  "ɫ",
-  "m",
-  "n",
-  "ŋ",
-  "o",
-  "ɔ",
-  "p",
-  "r",
-  "s",
-  "ʃ",
-  "t",
-  "u",
-  "ʊ",
-  "v",
-  "w",
-  "z",
-  "ʒ",
-  "θ",
-];
+export const appName = "/wɝdl̩/";
 
 const start = new Date("Jan 12, 2022");
-const days = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24));
+export const days = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24));
 
-const solution = wordList[days][1];
-const solutionWord = wordList[days][0];
+export const solution = wordList[days][1];
+export const solutionWord = wordList[days][0];
 
 const wordMap = {};
 wordList.forEach((word) => (wordMap[word[1]] = 1));
@@ -97,19 +62,6 @@ function reduce(state, action) {
   }
 }
 
-function Modal({ children }) {
-  const [visible, setVisible] = useState("");
-
-  requestAnimationFrame(() => {
-    setVisible(styles.visible);
-  });
-  return (
-    <div className={`${styles.modal} ${visible}`}>
-      <div>{children}</div>
-    </div>
-  );
-}
-
 function getInitialState() {
   const initialGameState = window.localStorage.getItem("gameState");
 
@@ -136,136 +88,6 @@ function getInitialState() {
   }
 }
 
-export function Timer({ targetDate }) {
-  const calculateTimeLeft = () => {
-    let difference = +new Date(targetDate) - +new Date();
-    let timeLeft = {
-      hours: "00",
-      minutes: "00",
-      seconds: "00",
-    };
-
-    if (difference > 0) {
-      timeLeft = {
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60),
-      };
-    }
-
-    return timeLeft;
-  };
-
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
-    return () => clearTimeout(timer);
-  });
-
-  return (
-    <p>
-      Next puzzle in {String(timeLeft.hours).padStart(2, "0")}:
-      {String(timeLeft.minutes).padStart(2, "0")}:
-      {String(timeLeft.seconds).padStart(2, "0")}
-    </p>
-  );
-}
-
-function Victory({ currentGuess, guesses, expiry }) {
-  function copy() {
-    const newLocal = document.getElementsByClassName(styles.emoji_share)[0];
-    if (!navigator.clipboard) {
-      newLocal.select();
-      document.execCommand("copy");
-    } else {
-      navigator.clipboard
-        .writeText(newLocal.textContent)
-        .then(function () {
-          alert("Copied to clipboard!"); // success
-        })
-        .catch(function () {
-          alert("Could not copy result to clipboard"); // error
-        });
-    }
-  }
-  return (
-    <Modal>
-      <p>👏 You win! 👏</p>
-      <p className={styles.words}>
-        /{solution}/ <br />
-        ("{solutionWord}")
-      </p>
-      <div className={styles.emoji_share}>
-        <p>
-          {appName} {days + 1} {currentGuess}/6 {"\n\n"}
-        </p>
-        {guesses.map((guess, i) => (
-          <EmojiGuess key={i} guess={guess} solution={solution} />
-        ))}
-      </div>
-      <button onClick={copy}>Share</button>
-      <Timer targetDate={expiry} />
-    </Modal>
-  );
-}
-
-function About({ showMenu }) {
-  const [show, setShow] = useState(false);
-
-  return (
-    <>
-      <aside className={`${styles.about} ${show ? styles.show : ""}`}>
-        <p>
-          This is inspired by{" "}
-          <a href={"https://www.powerlanguage.co.uk/wordle/"}>Wordle</a> by Josh
-          Wardle and a{" "}
-          <a
-            href={"https://twitter.com/GretchenAMcC/status/1480971953603334145"}
-          >
-            tweet
-          </a>{" "}
-          by everyone's favorite internet linguist Gretchen McCulloch.
-        </p>
-        <p>
-          <strong>Some linguistic notes:</strong> English has many dialects and
-          idiolects with various pronunciation differences. While these variants
-          are all valid and important, for this game to work some standardized
-          pronunciation needed to be chosen. I took the following steps to
-          create the word list for this game.
-        </p>
-        <p>
-          The CMU Pronouncing Dictionary (CMUdict) is a pronunciation corpus for
-          North American English. CMUdict is written using a system called{" "}
-          <a href="https://en.wikipedia.org/wiki/Arpabet">Arpabet</a>. I used an{" "}
-          <a href="https://github.com/lingz/cmudict-ipa">open-source mapping</a>{" "}
-          from into IPA.
-        </p>
-        <p>
-          I filtered the IPA CMUdict to find words that were represented by five
-          IPA characters. I then further filtered the list such that the written
-          version of the word also appears at least once in the Brown corpus.
-          Since both datasets have been normalized to lowercase, this results in
-          some proper nouns being included in the word list.
-        </p>
-        <p>
-          Report bugs or feedback{" "}
-          <a href="https://github.com/aelfric/ipa_wordle/issues">here</a>.
-          (Maybe don't look at the word list file in that repository if you want
-          to avoid spoilers).
-        </p>
-        <button className={styles.ipa_button} onClick={() => setShow(false)}>
-          Hide
-        </button>
-      </aside>
-      <button onClick={() => setShow(true)}>
-        <img src={helpIcon} alt="Help" />
-      </button>
-    </>
-  );
-}
-
 function App() {
   const [state, dispatch] = useReducer(reduce, getInitialState());
 
@@ -275,18 +97,6 @@ function App() {
       alert(state.error);
     }
   }, [state]);
-
-  function onclick(symbol) {
-    dispatch({ type: "GUESS_LETTER", payload: symbol });
-  }
-
-  function backspace() {
-    dispatch({ type: "BACKSPACE" });
-  }
-
-  function check() {
-    dispatch({ type: "CHECK_WORD" });
-  }
 
   return (
     <div className="App">
@@ -298,16 +108,10 @@ function App() {
         />
       )}
       {state.loss && (
-        <Modal>
-          <p>Better luck next time</p>
-          <p className={styles.words}>
-            /{solution}/ <br />
-            ("{solutionWord}")
-          </p>
-        </Modal>
+        <Loss />
       )}
       <header>
-        <About hide={() => undefined} />
+        <About />
         <h1>{appName}</h1>
       </header>
       <main>
@@ -319,31 +123,7 @@ function App() {
           }
         })}
       </main>
-      <div className={styles.keyboard}>
-        {characters.map((c) => (
-          <button
-            className={`${styles.ipa_button} ${state.letterMap[c]}`}
-            key={c}
-            onClick={() => onclick(c)}
-          >
-            {c}
-          </button>
-        ))}
-        <button
-          className={styles.ipa_button}
-          onClick={backspace}
-          style={{ gridColumn: "6 /span 2" }}
-        >
-          ⌫
-        </button>
-        <button
-          className={styles.ipa_button}
-          onClick={check}
-          style={{ gridColumn: "8 /span 3" }}
-        >
-          Submit
-        </button>
-      </div>
+      <Keyboard letterMap={state.letterMap} dispatch={dispatch} />
     </div>
   );
 }
