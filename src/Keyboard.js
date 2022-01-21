@@ -25,7 +25,7 @@ const characters = [
     "o",
     "ɔ",
     "p",
-    "r",
+    "ɹ",
     "s",
     "ʃ",
     "t",
