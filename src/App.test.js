@@ -88,4 +88,15 @@ describe("word checker", () => {
       { letter: "o", status: Status.INCORRECT },
     ]);
   });
+  
+  test("detects partially correct words with double letters in guess where correct place is later", () => {
+    const result = checkWord("ɫɝnɝz", "oʊnɝz");
+    expect(result).toEqual([
+      { letter: "ɫ", status: Status.INCORRECT},
+      { letter: "ɝ", status: Status.INCORRECT},
+      { letter: "n", status: Status.CORRECT},
+      { letter: "ɝ", status: Status.CORRECT},
+      { letter: "z", status: Status.CORRECT}
+    ]);
+  });
 });
